@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>moveit2_tutorials</name>
+  <name>sherlock_tutorials</name>
   <version>0.1.0</version>
   <description>The moveit2_tutorials package</description>
   <license>BSD</license>
