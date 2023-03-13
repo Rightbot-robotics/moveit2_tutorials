@@ -73,7 +73,7 @@ int main(int argc, char** argv)
   // parameter server and construct a
   // :moveit_codedir:`RobotModel<moveit_core/robot_model/include/moveit/robot_model/robot_model.h>`
   // for us to use.
-  const std::string PLANNING_GROUP = "panda_arm";
+  const std::string PLANNING_GROUP = "arm";
   robot_model_loader::RobotModelLoader robot_model_loader(motion_planning_api_tutorial_node, "robot_description");
   const moveit::core::RobotModelPtr& robot_model = robot_model_loader.getModel();
   /* Create a RobotState and JointModelGroup to keep track of the current robot pose and planning group*/
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
   planning_scene::PlanningScenePtr planning_scene(new planning_scene::PlanningScene(robot_model));
 
   // Configure a valid robot state
-  planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group, "ready");
+  planning_scene->getCurrentStateNonConst().setToDefaultValues(joint_model_group, "home");
 
   // We will now construct a loader to load a planner, by name.
   // Note that we are using the ROS pluginlib library here.
@@ -135,8 +135,8 @@ int main(int argc, char** argv)
   // The package MoveItVisualTools provides many capabilities for visualizing objects, robots,
   // and trajectories in RViz as well as debugging tools such as step-by-step introspection of a script.
   namespace rvt = rviz_visual_tools;
-  moveit_visual_tools::MoveItVisualTools visual_tools(motion_planning_api_tutorial_node, "panda_link0",
-                                                      "move_group_tutorial", move_group.getRobotModel());
+  auto visual_tools = moveit_visual_tools::MoveItVisualTools {motion_planning_api_tutorial_node, "base_link",
+                                                      "move_group_tutorial", move_group.getRobotModel()};
   visual_tools.enableBatchPublishing();
   visual_tools.deleteAllMarkers();  // clear all old markers
   visual_tools.trigger();
@@ -158,17 +158,20 @@ int main(int argc, char** argv)
 
   // Pose Goal
   // ^^^^^^^^^
-  // We will now create a motion plan request for the arm of the Panda
+  // We will now create a motion plan request for the arm of the Sherlock
   // specifying the desired pose of the end-effector as input.
   visual_tools.trigger();
   planning_interface::MotionPlanRequest req;
   planning_interface::MotionPlanResponse res;
   geometry_msgs::msg::PoseStamped pose;
-  pose.header.frame_id = "panda_link0";
-  pose.pose.position.x = 0.3;
-  pose.pose.position.y = 0.4;
-  pose.pose.position.z = 0.75;
-  pose.pose.orientation.w = 1.0;
+  pose.header.frame_id = "base_link";
+  pose.pose.position.x = 1.0;
+  pose.pose.position.y = 1.0;
+  pose.pose.position.z = 1.0;
+  pose.pose.orientation.w = 0.707;
+  pose.pose.orientation.z = 0.707;
+  pose.pose.orientation.y = 0.0;
+  pose.pose.orientation.x = 0.0;
 
   // A tolerance of 0.01 m is specified in position
   // and 0.01 radians in orientation
@@ -180,10 +183,12 @@ int main(int argc, char** argv)
   // :moveit_codedir:`kinematic_constraints<moveit_core/kinematic_constraints/include/moveit/kinematic_constraints/kinematic_constraint.h>`
   // package.
   moveit_msgs::msg::Constraints pose_goal =
-      kinematic_constraints::constructGoalConstraints("panda_link8", pose, tolerance_pose, tolerance_angle);
+      kinematic_constraints::constructGoalConstraints("gripper", pose, tolerance_pose, tolerance_angle);
 
   req.group_name = PLANNING_GROUP;
   req.goal_constraints.push_back(pose_goal);
+  req.allowed_planning_time = 5.0;
+  req.num_planning_attempts = 10;
 
   // We now construct a planning context that encapsulate the scene,
   // the request and the response. We call the planner using this
@@ -230,7 +235,7 @@ int main(int argc, char** argv)
   // ^^^^^^^^^^^^^^^^^
   // Now, setup a joint space goal
   moveit::core::RobotState goal_state(robot_model);
-  std::vector<double> joint_values = { -1.0, 0.7, 0.7, -1.5, -0.7, 2.0, 0.0 };
+  std::vector<double> joint_values = { 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 };
   goal_state.setJointGroupPositions(joint_model_group, joint_values);
   moveit_msgs::msg::Constraints joint_goal =
       kinematic_constraints::constructGoalConstraints(goal_state, joint_model_group);
@@ -297,12 +302,15 @@ int main(int argc, char** argv)
   // Let's add a new pose goal again. This time we will also add a path constraint to the motion.
   /* Let's create a new pose goal */
 
-  pose.pose.position.x = 0.32;
-  pose.pose.position.y = -0.25;
-  pose.pose.position.z = 0.65;
-  pose.pose.orientation.w = 1.0;
+  pose.pose.position.x = 1.0;
+  pose.pose.position.y = -1.0;
+  pose.pose.position.z = 1.0;
+  pose.pose.orientation.w = 0.707;
+  pose.pose.orientation.z = 0.707;
+  pose.pose.orientation.y = 0.0;
+  pose.pose.orientation.x = 0.0;
   moveit_msgs::msg::Constraints pose_goal_2 =
-      kinematic_constraints::constructGoalConstraints("panda_link8", pose, tolerance_pose, tolerance_angle);
+      kinematic_constraints::constructGoalConstraints("gripper", pose, tolerance_pose, tolerance_angle);
 
   /* Now, let's try to move to this new pose goal*/
   req.goal_constraints.clear();
@@ -311,8 +319,8 @@ int main(int argc, char** argv)
   /* But, let's impose a path constraint on the motion.
      Here, we are asking for the end-effector to stay level*/
   geometry_msgs::msg::QuaternionStamped quaternion;
-  quaternion.header.frame_id = "panda_link0";
-  req.path_constraints = kinematic_constraints::constructGoalConstraints("panda_link8", quaternion);
+  quaternion.header.frame_id = "base_link";
+  req.path_constraints = kinematic_constraints::constructGoalConstraints("gripper", quaternion);
 
   // Imposing path constraints requires the planner to reason in the space of possible positions of the end-effector
   // (the workspace of the robot)
@@ -323,9 +331,9 @@ int main(int argc, char** argv)
   // in this volume
   // when planning for the arm; the bounds are only used to determine if the sampled configurations are valid.
   req.workspace_parameters.min_corner.x = req.workspace_parameters.min_corner.y =
-      req.workspace_parameters.min_corner.z = -2.0;
+      req.workspace_parameters.min_corner.z = -6.0;
   req.workspace_parameters.max_corner.x = req.workspace_parameters.max_corner.y =
-      req.workspace_parameters.max_corner.z = 2.0;
+      req.workspace_parameters.max_corner.z = 6.0;
 
   // Call the planner and visualize all the plans created so far.
   context = planner_instance->getPlanningContext(planning_scene, req, res.error_code_);

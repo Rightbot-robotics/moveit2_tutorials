@@ -29,23 +29,23 @@ def load_yaml(package_name, file_path):
 
 def generate_launch_description():
     robot_description_config = load_file(
-        "moveit_resources_panda_description", "urdf/panda.urdf"
+        "sherlock_moveit_config", "config/truck_unloading_description.urdf"
     )
     robot_description = {"robot_description": robot_description_config}
 
     robot_description_semantic_config = load_file(
-        "moveit_resources_panda_moveit_config", "config/panda.srdf"
+        "sherlock_moveit_config", "config/truck_unloading_description.srdf"
     )
     robot_description_semantic = {
         "robot_description_semantic": robot_description_semantic_config
     }
 
     kinematics_yaml = load_yaml(
-        "moveit_resources_panda_moveit_config", "config/kinematics.yaml"
+        "sherlock_moveit_config", "config/kinematics.yaml"
     )
 
     planning_yaml = load_yaml(
-        "moveit_resources_panda_moveit_config", "config/ompl_planning.yaml"
+        "sherlock_moveit_config", "config/ompl_planning.yaml"
     )
 
     planning_plugin = {"planning_plugin": "ompl_interface/OMPLPlanner"}
@@ -53,7 +53,7 @@ def generate_launch_description():
     return LaunchDescription(
         [
             Node(
-                package="moveit2_tutorials",
+                package="sherlock_tutorials",
                 executable="motion_planning_api_tutorial",
                 name="motion_planning_api_tutorial",
                 parameters=[
