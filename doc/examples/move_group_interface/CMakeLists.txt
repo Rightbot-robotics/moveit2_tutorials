@@ -8,6 +8,19 @@ ament_target_dependencies(move_group_interface_tutorial
 install(TARGETS move_group_interface_tutorial
   DESTINATION lib/${PROJECT_NAME}
 )
+
+add_executable(move_group_interface_test
+        src/mgi_test.cpp)
+target_include_directories(move_group_interface_test
+        PUBLIC include)
+ament_target_dependencies(move_group_interface_test
+        ${THIS_PACKAGE_INCLUDE_DEPENDS} Boost)
+
+install(TARGETS move_group_interface_test
+        DESTINATION lib/${PROJECT_NAME}
+        )
+
+
 install(DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
 )
