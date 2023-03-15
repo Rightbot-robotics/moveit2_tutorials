@@ -54,7 +54,7 @@ def generate_launch_description():
         [
             Node(
                 package="sherlock_tutorials",
-                executable="motion_planning_api_tutorial",
+                executable="motion_planning_api_test",
                 name="motion_planning_api_tutorial",
                 parameters=[
                     robot_description,
