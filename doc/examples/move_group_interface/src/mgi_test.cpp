@@ -48,7 +48,7 @@ int main(int argc, char* argv[])
 
   // Set a target Pose
   while(rclcpp::ok()) {
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 1; i++) {
 
       geometry_msgs::msg::PoseStamped target_pose;
       geometry_msgs::msg::Pose msg;
@@ -56,9 +56,9 @@ int main(int argc, char* argv[])
       msg.orientation.z = 0.707;
       msg.orientation.y = 0.0;
       msg.orientation.x = 0.0;
-      msg.position.x = 1.0;
-      msg.position.y = 1.0;
-      msg.position.z = 0.5 + i * (0.5);
+      msg.position.x = -0.7;
+      msg.position.y = 1.3;
+      msg.position.z = 0.8 + i * (0.5);
 
       target_pose.pose = msg;
       target_pose.header.frame_id = "world";
@@ -66,18 +66,54 @@ int main(int argc, char* argv[])
       move_group_interface.setPoseTarget(target_pose, "gripper");
       move_group_interface.setPlannerId("RRTstarkConfigDefault");
       move_group_interface.setNumPlanningAttempts(10);
-      move_group_interface.setPlanningTime(2.0);
+      move_group_interface.setPlanningTime(5.0);
+
+      // Set the maximum velocity scaling factor
+      move_group_interface.setMaxVelocityScalingFactor(1.0);
+
+      // Set the maximum acceleration scaling factor
+      move_group_interface.setMaxAccelerationScalingFactor(1.0);
+
+
+      /* RViz provides many types of markers, in this demo we will use text, cylinders, and spheres*/
+      Eigen::Isometry3d text_pose = Eigen::Isometry3d::Identity();
+      text_pose.translation().z() = 1.75;
+      // Display the goal state
+      moveit_visual_tools.publishAxisLabeled(msg, "goal_1");
+      moveit_visual_tools.publishText(text_pose, "Pose Goal (1)", rviz_visual_tools::WHITE, rviz_visual_tools::XLARGE);
+      moveit_visual_tools.trigger();
+
 
       // Create a plan to that target pose
       // prompt("Press 'next' in the RvizVisualToolsGui window to plan");
       draw_title("Planning");
       moveit_visual_tools.trigger();
-      auto const [success, plan] = [&move_group_interface] {
+      auto [success, plan] = [&move_group_interface] {
         moveit::planning_interface::MoveGroupInterface::Plan msg;
-        auto const ok = static_cast<bool>(move_group_interface.plan(msg));
+        auto ok = static_cast<bool>(move_group_interface.plan(msg));
         return std::make_pair(ok, msg);
       }();
 
+      // compute velocity information for the trajectory
+      std::vector<trajectory_msgs::msg::JointTrajectoryPoint>& points = plan.trajectory_.joint_trajectory.points;
+      for (size_t i1 = 1; i1 < points.size(); ++i1) {
+        trajectory_msgs::msg::JointTrajectoryPoint& prev_point = points[i1 -1];
+        trajectory_msgs::msg::JointTrajectoryPoint& curr_point = points[i1];
+        double dt = curr_point.time_from_start.sec - prev_point.time_from_start.sec;
+        for (size_t j = 0; j < prev_point.velocities.size(); ++j) {
+          double joint_position_diff = curr_point.positions[j] - prev_point.positions[j];
+          double joint_velocity = joint_position_diff / dt;
+          curr_point.velocities[j] = joint_velocity;
+        }
+      }
+
+      //    // add velocity smoothing to the trajectory using the AddRuckigTrajectorySmoothing adapter
+      //    moveit::planning_interface::PlannerManagerPtr planner_manager = move_group.getPlannerInstance();
+      //    moveit::planning_interface::PlanningPipelinePtr planning_pipeline = std::make_shared<moveit::planning_interface::PlanningPipeline>(move_group.getRobotModel(), move_group.getNodeHandle(), planner_manager);
+      //    planning_pipeline->getRequestAdapterChainNonConst().insert(std::make_shared<moveit::planning_request_adapter::AddRuckigTrajectorySmoothing>());
+      //    planning_pipeline->generatePlan(move_group.getPlanningScene(), move_group.getGoal(), plan);
+      //
+      //
 
       // Execute the plan
       bool success_flag = true;
@@ -98,6 +134,7 @@ int main(int argc, char* argv[])
 
       sleep(1);
     }
+
   }
 
   // Shutdown ROS
