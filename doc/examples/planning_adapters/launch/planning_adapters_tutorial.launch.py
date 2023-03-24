@@ -42,11 +42,26 @@ def generate_launch_description():
         .to_moveit_configs()
     )
 
-    planning_yaml = load_yaml(
+    ompl_planning_yaml = load_yaml(
         "sherlock_moveit_config", "config/ompl_planning.yaml"
     )
 
-    planning_plugin = {"planning_plugin": "ompl_interface/OMPLPlanner"}
+    chomp_panning_yaml = load_yaml(
+        "sherlock_moveit_config", "config/chomp_planning.yaml"
+    )
+
+
+    # Start the actual move_group node/action server
+    run_move_group_node = Node(
+        package="moveit_ros_move_group",
+        executable="move_group",
+        output="screen",
+        parameters=[
+            moveit_config.to_dict(),
+            ompl_planning_yaml,
+            chomp_panning_yaml,
+        ],
+    )
 
     planning_adapter_node = Node(
         package="sherlock_tutorials",
@@ -54,13 +69,14 @@ def generate_launch_description():
         name="planning_adapters_test",
         parameters=[
             moveit_config.to_dict(),
-            planning_yaml,
-            planning_plugin,
+            ompl_planning_yaml,
+            chomp_panning_yaml,
         ],
     )
 
     return LaunchDescription(
         [
-            planning_adapter_node,
+            # planning_adapter_node,
+            run_move_group_node,
         ]
     )
