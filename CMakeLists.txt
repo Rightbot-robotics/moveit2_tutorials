@@ -30,29 +30,29 @@ find_package(tf2_eigen REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 
 set(THIS_PACKAGE_INCLUDE_DIRS
-  doc/interactivity/include
-)
+        doc/interactivity/include
+        )
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
-  ament_cmake
-  rclcpp
-  rclcpp_action
-  tf2_geometry_msgs
-  tf2_ros
-  moveit_core
-  rviz_visual_tools
-  moveit_visual_tools
-  moveit_ros_planning_interface
-  interactive_markers
-  tf2_geometry_msgs
-  moveit_ros_planning
-  pluginlib
-  Eigen3
-  Boost
-  control_msgs
-  moveit_servo
-  moveit_task_constructor_core
-)
+        ament_cmake
+        rclcpp
+        rclcpp_action
+        tf2_geometry_msgs
+        tf2_ros
+        moveit_core
+        rviz_visual_tools
+        moveit_visual_tools
+        moveit_ros_planning_interface
+        interactive_markers
+        tf2_geometry_msgs
+        moveit_ros_planning
+        pluginlib
+        Eigen3
+        Boost
+        control_msgs
+        moveit_servo
+        moveit_task_constructor_core
+        )
 
 include_directories(${THIS_PACKAGE_INCLUDE_DIRS})
 
@@ -83,9 +83,10 @@ add_subdirectory(doc/examples/moveit_cpp)
 # add_subdirectory(doc/examples/bullet_collision_checker)
 add_subdirectory(doc/examples/realtime_servo)
 add_subdirectory(doc/how_to_guides/isaac_panda)
+add_subdirectory(doc/examples/ompl_constrained_planning)
 
 ament_export_dependencies(
-  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+        ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
 
 ament_export_include_directories(include)

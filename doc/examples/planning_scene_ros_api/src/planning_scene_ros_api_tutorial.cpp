@@ -49,6 +49,7 @@
 #include <moveit/robot_state/conversions.h>
 
 #include <rviz_visual_tools/rviz_visual_tools.hpp>
+#include <moveit/planning_scene_interface/planning_scene_interface.h>
 
 static const rclcpp::Logger LOGGER = rclcpp::get_logger("planning_scene_ros_api_tutorial");
 
