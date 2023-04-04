@@ -13,7 +13,10 @@ def generate_launch_description():
         .trajectory_execution(file_path="config/gripper_moveit_controllers.yaml")
         .moveit_cpp(
             file_path=get_package_share_directory("moveit2_tutorials")
-            + "/config/moveit_cpp.yaml"
+                      + "/config/moveit_cpp.yaml"
+        )
+        .planning_scene_monitor(
+            publish_robot_description=True, publish_robot_description_semantic=True
         )
         .to_moveit_configs()
     )
@@ -28,8 +31,8 @@ def generate_launch_description():
 
     # RViz
     rviz_config_file = (
-        get_package_share_directory("moveit2_tutorials")
-        + "/launch/moveit_cpp_tutorial.rviz"
+            get_package_share_directory("moveit2_tutorials")
+            + "/launch/moveit_cpp_tutorial.rviz"
     )
     rviz_node = Node(
         package="rviz2",
