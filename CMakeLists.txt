@@ -84,6 +84,7 @@ add_subdirectory(doc/examples/moveit_cpp)
 add_subdirectory(doc/examples/realtime_servo)
 add_subdirectory(doc/how_to_guides/isaac_panda)
 add_subdirectory(doc/examples/ompl_constrained_planning)
+add_subdirectory(doc/how_to_guides/parallel_planning)
 
 ament_export_dependencies(
         ${THIS_PACKAGE_INCLUDE_DEPENDS}
